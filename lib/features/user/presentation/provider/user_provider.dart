@@ -1,8 +1,9 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 
-import '../../data/models/user_model.dart';
-import '../../domain/repositories/user_repository.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:random_user_app/features/user/data/models/user_model.dart';
+import 'package:random_user_app/features/user/domain/repositories/user_repository.dart';
 
 class UserProvider extends ChangeNotifier {
   final UserRepository repository;
@@ -18,8 +19,29 @@ class UserProvider extends ChangeNotifier {
   String? _error;
   String? get error => _error;
 
-  Timer? _ticker;
+  Ticker? _ticker;
+  Duration _lastTick = Duration.zero;
   bool _fetching = false;
+
+  void startTicker(TickerProvider vsync) {
+    if (_ticker != null) return;
+
+    _ticker = vsync.createTicker((elapsed) {
+      if (elapsed.inSeconds - _lastTick.inSeconds >= 5) {
+        _lastTick = elapsed;
+        fetchUser();
+      }
+    });
+
+    _ticker!.start();
+  }
+
+  void stopTicker() {
+    _ticker?.dispose();
+    _ticker = null;
+    _lastTick = Duration.zero;
+  }
+
   Future<void> fetchUser() async {
     if (_fetching) return;
 
@@ -30,27 +52,20 @@ class UserProvider extends ChangeNotifier {
 
     try {
       final newUsers = await repository.getUsers();
-      _users.addAll(newUsers);
-    } catch (e) {
+
+      for (final user in newUsers) {
+        final exists = await repository.exists(user.id);
+        if (!exists) {
+          await repository.save(user);
+          _users.add(user);
+        }
+      }
+    } catch (_) {
       _error = 'Erro ao buscar usuários';
     }
 
     _isLoading = false;
     _fetching = false;
-    notifyListeners();
-  }
-
-  void startTicker() {
-    _ticker ??= Timer.periodic(const Duration(seconds: 5), (_) => fetchUser());
-  }
-
-  void stopTicker() {
-    _ticker?.cancel();
-    _ticker = null;
-  }
-
-  void clear() {
-    _users.clear();
     notifyListeners();
   }
 

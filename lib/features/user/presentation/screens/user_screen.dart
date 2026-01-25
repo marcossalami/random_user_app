@@ -11,22 +11,38 @@ class UserScreen extends StatefulWidget {
   State<UserScreen> createState() => _UserScreenState();
 }
 
-class _UserScreenState extends State<UserScreen> {
+class _UserScreenState extends State<UserScreen>
+    with TickerProviderStateMixin, WidgetsBindingObserver {
+  late UserProvider provider;
+
   @override
   void initState() {
     super.initState();
 
-    Future.microtask(() {
-      final provider = context.read<UserProvider>();
-      provider.fetchUser(); // primeira carga
-      provider.startTicker(); // ticker a cada 5s
+    final provider = context.read<UserProvider>();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      provider.fetchUser();
+      provider.startTicker(this);
     });
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
+      provider.stopTicker();
+    }
+
+    if (state == AppLifecycleState.resumed) {
+      provider.startTicker(this);
+    }
+  }
+
+  @override
   void dispose() {
-    /// 🛑 para o ticker ao sair da tela
-    context.read<UserProvider>().stopTicker();
+    WidgetsBinding.instance.removeObserver(this);
+    provider.stopTicker();
     super.dispose();
   }
 
@@ -40,7 +56,7 @@ class _UserScreenState extends State<UserScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.bookmark),
-            tooltip: 'Usuários persistidos',
+            tooltip: 'Usuários salvos',
             onPressed: () {
               Navigator.push(
                 context,
@@ -68,6 +84,7 @@ class _UserScreenState extends State<UserScreen> {
     }
 
     return ListView.separated(
+      padding: const EdgeInsets.symmetric(vertical: 8),
       itemCount: provider.users.length,
       separatorBuilder: (_, __) => const Divider(height: 1),
       itemBuilder: (_, index) {
@@ -75,7 +92,10 @@ class _UserScreenState extends State<UserScreen> {
 
         return ListTile(
           leading: CircleAvatar(backgroundImage: NetworkImage(user.picture)),
-          title: Text(user.name),
+          title: Text(
+            user.name,
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
           subtitle: Text(user.email),
           onTap: () {
             Navigator.push(

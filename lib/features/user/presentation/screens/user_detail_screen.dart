@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:random_user_app/features/user/data/models/user_model.dart';
+import 'package:random_user_app/features/user/presentation/widgets/info_tile.dart';
+import 'package:random_user_app/features/user/presentation/widgets/section.dart';
 import '../../domain/repositories/user_repository.dart';
 
 class UserDetailScreen extends StatefulWidget {
@@ -25,30 +27,25 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
   }
 
   Future<void> _checkIfSaved() async {
-    try {
-      final user = await repository.getById(widget.user.id);
-      setState(() => isSaved = user != null);
-    } catch (e) {
-      setState(() => isSaved = false);
-    }
+    final user = await repository.getById(widget.user.id);
+    setState(() => isSaved = user != null);
   }
 
   Future<void> _toggleSave() async {
     setState(() => isLoading = true);
-    try {
-      if (isSaved) {
-        await repository.remove(widget.user.id);
-        _showMessage('Usuário removido dos salvos');
-      } else {
-        await repository.save(widget.user);
-        _showMessage('Usuário salvo com sucesso');
-      }
-      setState(() => isSaved = !isSaved);
-    } catch (e) {
-      _showMessage('Erro ao salvar/remover usuário');
-    } finally {
-      setState(() => isLoading = false);
+
+    if (isSaved) {
+      await repository.remove(widget.user.id);
+      _showMessage('Usuário removido dos salvos');
+    } else {
+      await repository.save(widget.user);
+      _showMessage('Usuário salvo com sucesso');
     }
+
+    setState(() {
+      isSaved = !isSaved;
+      isLoading = false;
+    });
   }
 
   void _showMessage(String message) {
@@ -60,46 +57,77 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Detalhes do Usuário'),
-        actions: [
-          IconButton(
-            icon: Icon(isSaved ? Icons.favorite : Icons.favorite_border),
-            onPressed: isLoading ? null : _toggleSave,
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 260,
+            pinned: true,
+            actions: [
+              IconButton(
+                icon: Icon(isSaved ? Icons.favorite : Icons.favorite_border),
+                onPressed: isLoading ? null : _toggleSave,
+              ),
+            ],
+            flexibleSpace: FlexibleSpaceBar(
+              title: Text(
+                widget.user.name,
+                style: const TextStyle(fontSize: 16),
+              ),
+              background: Container(
+                color: Theme.of(context).primaryColor,
+                child: Center(
+                  child: CircleAvatar(
+                    radius: 70,
+                    backgroundImage: NetworkImage(widget.user.picture),
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          SliverPadding(
+            padding: const EdgeInsets.all(16),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                Section(
+                  title: 'Informações Pessoais',
+                  children: [
+                    InfoTile(
+                      icon: Icons.email,
+                      label: 'Email',
+                      value: widget.user.email,
+                    ),
+                    InfoTile(
+                      icon: Icons.phone,
+                      label: 'Telefone',
+                      value: widget.user.phone,
+                    ),
+                    InfoTile(
+                      icon: Icons.flag,
+                      label: 'Nacionalidade',
+                      value: widget.user.nationality,
+                    ),
+                  ],
+                ),
+              ]),
+            ),
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            CircleAvatar(
-              radius: 60,
-              backgroundImage: NetworkImage(widget.user.picture),
-            ),
-            const SizedBox(height: 24),
-            _buildDetailCard('Nome', widget.user.name),
-            _buildDetailCard('Email', widget.user.email),
-            _buildDetailCard('Telefone', widget.user.phone),
-          ],
-        ),
-      ),
-    );
-  }
 
-  Widget _buildDetailCard(String label, String value) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 4),
-            Text(value),
-          ],
-        ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: isLoading ? null : _toggleSave,
+        icon: isLoading
+            ? const SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
+                ),
+              )
+            : Icon(isSaved ? Icons.delete : Icons.bookmark),
+        label: Text(isSaved ? 'Remover' : 'Salvar'),
       ),
     );
   }

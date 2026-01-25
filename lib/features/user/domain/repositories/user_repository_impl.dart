@@ -59,4 +59,9 @@ class UserRepositoryImpl implements UserRepository {
       return null;
     }
   }
+
+  @override
+  Future<bool> exists(String id) async {
+    return local.exists(id);
+  }
 }

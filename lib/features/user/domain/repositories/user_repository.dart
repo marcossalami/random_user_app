@@ -14,4 +14,6 @@ abstract class UserRepository {
 
   bool isSaved(String id);
   Future<UserModel?> getById(String id);
+
+  Future<bool> exists(String id);
 }
