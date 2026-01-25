@@ -2,14 +2,36 @@ import 'package:random_user_app/features/user/data/dtos/user_remote_dto.dart';
 
 import '../../data/models/user_model.dart';
 import 'user_repository.dart';
+import '../../data/local/user_hive_dto.dart';
 
 class UserRepositoryImpl implements UserRepository {
-  final UserRemoteDatasource remoteDatasource;
+  final UserRemoteDatasource remote;
+  final UserLocalDatasource local;
 
-  UserRepositoryImpl(this.remoteDatasource);
+  UserRepositoryImpl(this.remote, this.local);
 
   @override
   Future<List<UserModel>> getUsers() {
-    return remoteDatasource.fetchUsers();
+    return remote.fetchUsers();
+  }
+
+  @override
+  Future<void> saveUser(UserModel user) {
+    return local.save(user);
+  }
+
+  @override
+  Future<void> removeUser(String id) {
+    return local.remove(id);
+  }
+
+  @override
+  List<UserModel> getSavedUsers() {
+    return local.getAll();
+  }
+
+  @override
+  bool isSaved(String id) {
+    return local.exists(id);
   }
 }
