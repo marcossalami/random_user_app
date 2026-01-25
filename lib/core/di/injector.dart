@@ -1,13 +1,33 @@
+import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
-import '../network/api_client.dart';
-import '../network/dio_config.dart';
+import 'package:random_user_app/features/user/data/dtos/user_remote_dto.dart';
+import 'package:random_user_app/features/user/domain/repositories/user_repository_impl.dart';
+import 'package:random_user_app/features/user/presentation/provider/user_provider.dart';
+
+import '../../features/user/domain/repositories/user_repository.dart';
 
 final getIt = GetIt.instance;
 
 void setupDependencies() {
-  // Dio
-  getIt.registerLazySingleton(() => DioConfig.createDio());
+  // HTTP
+  getIt.registerLazySingleton<Dio>(
+    () => Dio(
+      BaseOptions(
+        baseUrl: 'https://randomuser.me/api/',
+        connectTimeout: const Duration(seconds: 10),
+        receiveTimeout: const Duration(seconds: 10),
+      ),
+    ),
+  );
 
-  // ApiClient
-  getIt.registerLazySingleton(() => ApiClient(getIt()));
+  // Datasource
+  getIt.registerLazySingleton<UserRemoteDatasource>(
+    () => UserRemoteDatasourceImpl(getIt<Dio>()),
+  );
+
+  // Repository
+  getIt.registerLazySingleton<UserRepository>(
+    () => UserRepositoryImpl(getIt<UserRemoteDatasource>()),
+  );
+  getIt.registerFactory<UserProvider>(() => UserProvider(getIt()));
 }
