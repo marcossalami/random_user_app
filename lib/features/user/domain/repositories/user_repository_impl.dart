@@ -16,12 +16,27 @@ class UserRepositoryImpl implements UserRepository {
   }
 
   @override
+  Future<List<UserModel>> getAll() {
+    return Future.value(local.getAll());
+  }
+
+  @override
   Future<void> saveUser(UserModel user) {
     return local.save(user);
   }
 
   @override
+  Future<void> save(UserModel user) {
+    return local.save(user);
+  }
+
+  @override
   Future<void> removeUser(String id) {
+    return local.remove(id);
+  }
+
+  @override
+  Future<void> remove(String id) {
     return local.remove(id);
   }
 
@@ -33,5 +48,15 @@ class UserRepositoryImpl implements UserRepository {
   @override
   bool isSaved(String id) {
     return local.exists(id);
+  }
+
+  @override
+  Future<UserModel?> getById(String id) async {
+    try {
+      final users = local.getAll();
+      return users.firstWhere((user) => user.id == id);
+    } catch (e) {
+      return null;
+    }
   }
 }

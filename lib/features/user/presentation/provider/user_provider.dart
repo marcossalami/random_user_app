@@ -1,7 +1,8 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 
-import '../../domain/repositories/user_repository.dart';
 import '../../data/models/user_model.dart';
+import '../../domain/repositories/user_repository.dart';
 
 class UserProvider extends ChangeNotifier {
   final UserRepository repository;
@@ -17,8 +18,13 @@ class UserProvider extends ChangeNotifier {
   String? _error;
   String? get error => _error;
 
+  Timer? _ticker;
+  bool _fetching = false;
   Future<void> fetchUser() async {
-    _isLoading = true;
+    if (_fetching) return;
+
+    _fetching = true;
+    _isLoading = _users.isEmpty;
     _error = null;
     notifyListeners();
 
@@ -30,11 +36,27 @@ class UserProvider extends ChangeNotifier {
     }
 
     _isLoading = false;
+    _fetching = false;
     notifyListeners();
+  }
+
+  void startTicker() {
+    _ticker ??= Timer.periodic(const Duration(seconds: 5), (_) => fetchUser());
+  }
+
+  void stopTicker() {
+    _ticker?.cancel();
+    _ticker = null;
   }
 
   void clear() {
     _users.clear();
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    stopTicker();
+    super.dispose();
   }
 }
