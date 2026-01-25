@@ -1,55 +1,55 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:provider/provider.dart';
 import 'package:random_user_app/features/user/presentation/provider/user_provider.dart';
 
-class UserScreen extends StatelessWidget {
+class UserScreen extends StatefulWidget {
   const UserScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final viewModel = context.watch<UserProvider>();
+  State<UserScreen> createState() => _UserScreenState();
+}
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Random Users'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () => context.read<UserProvider>().clear(),
-          ),
-        ],
-      ),
-      body: _buildBody(viewModel),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => context.read<UserProvider>().fetchUser(),
-        child: const Icon(Icons.download),
-      ),
-    );
+class _UserScreenState extends State<UserScreen>
+    with SingleTickerProviderStateMixin {
+  late final Ticker _ticker;
+  Duration _lastTick = Duration.zero;
+
+  @override
+  void initState() {
+    super.initState();
+
+    final provider = context.read<UserProvider>();
+
+    _ticker = createTicker((elapsed) {
+      if (elapsed - _lastTick >= const Duration(seconds: 5)) {
+        _lastTick = elapsed;
+        provider.fetchUser();
+      }
+    });
+
+    _ticker.start();
   }
 
-  Widget _buildBody(UserProvider vm) {
-    if (vm.isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
+  @override
+  void dispose() {
+    _ticker.dispose();
+    super.dispose();
+  }
 
-    if (vm.error != null) {
-      return Center(child: Text(vm.error!));
-    }
+  @override
+  Widget build(BuildContext context) {
+    final provider = context.watch<UserProvider>();
 
-    if (vm.users.isEmpty) {
-      return const Center(child: Text('Nenhum usuário carregado'));
-    }
-
-    return ListView.builder(
-      itemCount: vm.users.length,
-      itemBuilder: (_, index) {
-        final user = vm.users[index];
-        return ListTile(
-          leading: CircleAvatar(backgroundImage: NetworkImage(user.picture)),
-          title: Text(user.name),
-          subtitle: Text(user.email),
-        );
-      },
+    return Scaffold(
+      appBar: AppBar(title: const Text('Random Users')),
+      body: ListView.builder(
+        itemCount: provider.users.length,
+        itemBuilder: (_, index) {
+          final user = provider.users[index];
+          return ListTile(title: Text(user.name), subtitle: Text(user.email));
+        },
+      ),
     );
   }
 }
