@@ -1,6 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:random_user_app/features/user/data/models/user_parser.dart';
-
 import '../models/user_model.dart';
 
 abstract class UserRemoteDatasource {
@@ -14,12 +12,10 @@ class UserRemoteDatasourceImpl implements UserRemoteDatasource {
 
   @override
   Future<List<UserModel>> fetchUsers() async {
-    final response = await dio.get('https://randomuser.me/api/?results=1');
+    final response = await dio.get('https://randomuser.me/api/');
 
-    if (response.statusCode == 200) {
-      return parseUsersInBackground(response.data.toString());
-    } else {
-      throw Exception('Erro ao buscar usuários');
-    }
+    final results = response.data['results'] as List;
+
+    return results.map((json) => UserModel.fromJson(json)).toList();
   }
 }

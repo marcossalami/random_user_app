@@ -1,19 +1,27 @@
 import 'package:flutter/material.dart';
-import 'core/di/injector.dart';
+import 'package:provider/provider.dart';
+import 'package:dio/dio.dart';
+import 'package:random_user_app/features/user/data/dtos/user_remote_dto.dart';
+import 'package:random_user_app/features/user/presentation/screens/user_screen.dart';
+
+import 'features/user/domain/repositories/user_repository_impl.dart';
+import 'features/user/presentation/provider/user_provider.dart';
 
 void main() {
-  setupDependencies();
-  runApp(const MyApp());
-}
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) {
+            final dio = Dio();
+            final datasource = UserRemoteDatasourceImpl(dio);
+            final repository = UserRepositoryImpl(datasource);
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: Scaffold(body: Center(child: Text('Random User App'))),
-    );
-  }
+            return UserProvider(repository);
+          },
+        ),
+      ],
+      child: UserScreen(),
+    ),
+  );
 }

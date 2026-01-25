@@ -4,65 +4,32 @@ part 'user_model.g.dart';
 
 @JsonSerializable()
 class UserModel {
-  final String gender;
+  final String id;
+  final String name;
   final String email;
+  final String picture;
   final String phone;
-
-  final NameModel name;
-  final PictureModel picture;
-  final LocationModel location;
+  final String nationality;
 
   UserModel({
-    required this.gender,
-    required this.email,
-    required this.phone,
+    required this.id,
     required this.name,
+    required this.email,
     required this.picture,
-    required this.location,
+    required this.phone,
+    required this.nationality,
   });
 
-  factory UserModel.fromJson(Map<String, dynamic> json) =>
-      _$UserModelFromJson(json);
+  factory UserModel.fromJson(Map<String, dynamic> json) {
+    return UserModel(
+      id: json['login']['uuid'] as String,
+      name: '${json['name']['first']} ${json['name']['last']}',
+      email: json['email'] as String,
+      picture: json['picture']['large'] as String,
+      phone: json['phone'] as String,
+      nationality: json['nat'] as String,
+    );
+  }
 
   Map<String, dynamic> toJson() => _$UserModelToJson(this);
-}
-
-@JsonSerializable()
-class NameModel {
-  final String title;
-  final String first;
-  final String last;
-
-  NameModel({required this.title, required this.first, required this.last});
-
-  factory NameModel.fromJson(Map<String, dynamic> json) =>
-      _$NameModelFromJson(json);
-
-  Map<String, dynamic> toJson() => _$NameModelToJson(this);
-}
-
-@JsonSerializable()
-class PictureModel {
-  final String large;
-  final String thumbnail;
-
-  PictureModel({required this.large, required this.thumbnail});
-
-  factory PictureModel.fromJson(Map<String, dynamic> json) =>
-      _$PictureModelFromJson(json);
-
-  Map<String, dynamic> toJson() => _$PictureModelToJson(this);
-}
-
-@JsonSerializable()
-class LocationModel {
-  final String country;
-  final String city;
-
-  LocationModel({required this.country, required this.city});
-
-  factory LocationModel.fromJson(Map<String, dynamic> json) =>
-      _$LocationModelFromJson(json);
-
-  Map<String, dynamic> toJson() => _$LocationModelToJson(this);
 }
