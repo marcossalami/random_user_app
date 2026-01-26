@@ -54,6 +54,16 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
     ).showSnackBar(SnackBar(content: Text(message)));
   }
 
+  String _formatDate(String isoDate) {
+    if (isoDate.isEmpty) return '-';
+    try {
+      final date = DateTime.parse(isoDate);
+      return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+    } catch (_) {
+      return isoDate;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -93,6 +103,32 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                   title: 'Informações Pessoais',
                   children: [
                     InfoTile(
+                      icon: Icons.person,
+                      label: 'Gênero',
+                      value: widget.user.gender,
+                    ),
+                    InfoTile(
+                      icon: Icons.cake,
+                      label: 'Idade',
+                      value: '${widget.user.age} anos',
+                    ),
+                    InfoTile(
+                      icon: Icons.calendar_today,
+                      label: 'Nascimento',
+                      value: _formatDate(widget.user.dob),
+                    ),
+                    InfoTile(
+                      icon: Icons.flag,
+                      label: 'Nacionalidade',
+                      value: widget.user.nationality,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                Section(
+                  title: 'Contato',
+                  children: [
+                    InfoTile(
                       icon: Icons.email,
                       label: 'Email',
                       value: widget.user.email,
@@ -103,9 +139,51 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                       value: widget.user.phone,
                     ),
                     InfoTile(
-                      icon: Icons.flag,
-                      label: 'Nacionalidade',
-                      value: widget.user.nationality,
+                      icon: Icons.smartphone,
+                      label: 'Celular',
+                      value: widget.user.cell,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                Section(
+                  title: 'Endereço',
+                  children: [
+                    InfoTile(
+                      icon: Icons.location_on,
+                      label: 'Rua',
+                      value: widget.user.street,
+                    ),
+                    InfoTile(
+                      icon: Icons.location_city,
+                      label: 'Cidade',
+                      value: widget.user.city,
+                    ),
+                    InfoTile(
+                      icon: Icons.map,
+                      label: 'Estado',
+                      value: widget.user.state,
+                    ),
+                    InfoTile(
+                      icon: Icons.public,
+                      label: 'País',
+                      value: widget.user.country,
+                    ),
+                    InfoTile(
+                      icon: Icons.markunread_mailbox,
+                      label: 'CEP',
+                      value: widget.user.postcode,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                Section(
+                  title: 'Registro',
+                  children: [
+                    InfoTile(
+                      icon: Icons.app_registration,
+                      label: 'Data de Registro',
+                      value: _formatDate(widget.user.registered),
                     ),
                   ],
                 ),

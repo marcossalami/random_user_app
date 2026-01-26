@@ -54,11 +54,7 @@ class UserProvider extends ChangeNotifier {
       final newUsers = await repository.getUsers();
 
       for (final user in newUsers) {
-        final exists = await repository.exists(user.id);
-        if (!exists) {
-          await repository.save(user);
-          _users.add(user);
-        }
+        _users.add(user);
       }
     } catch (_) {
       _error = 'Erro ao buscar usuários';

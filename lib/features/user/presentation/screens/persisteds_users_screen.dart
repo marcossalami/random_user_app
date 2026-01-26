@@ -34,8 +34,11 @@ class _PersistedUsersScreenState extends State<PersistedUsersScreen> {
   }
 
   Future<void> _deleteUser(UserModel user) async {
+    setState(() {
+      users.remove(user);
+    });
+
     await repository.remove(user.id);
-    await _load();
 
     if (mounted) {
       ScaffoldMessenger.of(
@@ -51,7 +54,7 @@ class _PersistedUsersScreenState extends State<PersistedUsersScreen> {
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : users.isEmpty
-          ? EmptyState()
+          ? const EmptyState()
           : RefreshIndicator(
               onRefresh: _load,
               child: ListView.separated(
