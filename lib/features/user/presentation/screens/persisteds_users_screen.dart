@@ -49,69 +49,158 @@ class _PersistedUsersScreenState extends State<PersistedUsersScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Usuários Salvos'), centerTitle: true),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : users.isEmpty
-          ? const EmptyState()
-          : RefreshIndicator(
-              onRefresh: _load,
-              child: ListView.separated(
-                padding: const EdgeInsets.all(12),
-                itemCount: users.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 8),
-                itemBuilder: (_, index) {
-                  final user = users[index];
+    final colorScheme = Theme.of(context).colorScheme;
 
-                  return Dismissible(
-                    key: ValueKey(user.id),
-                    direction: DismissDirection.endToStart,
-                    background: Container(
-                      padding: const EdgeInsets.only(right: 24),
-                      alignment: Alignment.centerRight,
-                      decoration: BoxDecoration(
-                        color: Colors.red.shade400,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(Icons.delete, color: Colors.white),
-                    ),
-                    onDismissed: (_) => _deleteUser(user),
-                    child: Card(
-                      elevation: 2,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.all(12),
-                        leading: CircleAvatar(
-                          radius: 26,
-                          backgroundImage: NetworkImage(user.picture),
+    return Scaffold(
+      body: RefreshIndicator(
+        onRefresh: _load,
+        edgeOffset: 100,
+        child: CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              title: Text(
+                'Usuários Salvos',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              centerTitle: false,
+              pinned: true,
+            ),
+            if (isLoading && users.isEmpty)
+              const SliverFillRemaining(
+                hasScrollBody: false,
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else if (users.isEmpty)
+              const SliverFillRemaining(
+                hasScrollBody: false,
+                child: EmptyState(),
+              )
+            else
+              SliverPadding(
+                padding: const EdgeInsets.all(16),
+                sliver: SliverList.builder(
+                  itemCount: users.length,
+                  itemBuilder: (context, index) {
+                    final user = users[index];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Dismissible(
+                        key: ValueKey(user.id),
+                        direction: DismissDirection.endToStart,
+                        onDismissed: (_) => _deleteUser(user),
+                        background: Container(
+                          padding: const EdgeInsets.only(right: 24),
+                          alignment: Alignment.centerRight,
+                          decoration: BoxDecoration(
+                            color: Colors.red.shade400,
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                          child: const Icon(
+                            Icons.delete_sweep,
+                            color: Colors.white,
+                          ),
                         ),
-                        title: Text(
-                          user.name,
-                          style: const TextStyle(fontWeight: FontWeight.w600),
-                        ),
-                        subtitle: Text(user.email),
-                        trailing: const Icon(
-                          Icons.chevron_right,
-                          color: Colors.grey,
-                        ),
-                        onTap: () async {
-                          await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => UserDetailScreen(user: user),
+                        child: Card(
+                          elevation: 0,
+                          color: colorScheme.surfaceContainerLow,
+                          shape: RoundedRectangleBorder(
+                            side: BorderSide(
+                              color: colorScheme.outlineVariant.withValues(
+                                alpha: 0.5,
+                              ),
                             ),
-                          );
-                          _load();
-                        },
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                          clipBehavior: Clip.antiAlias,
+                          child: InkWell(
+                            onTap: () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => UserDetailScreen(user: user),
+                                ),
+                              );
+                              _load();
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Hero(
+                                    tag: user.picture,
+                                    child: CircleAvatar(
+                                      radius: 36,
+                                      backgroundImage: NetworkImage(
+                                        user.picture,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: _buildUserInfo(context, user),
+                                  ),
+                                  Icon(
+                                    Icons.arrow_forward,
+                                    color: colorScheme.onSurfaceVariant
+                                        .withValues(alpha: 0.5),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUserInfo(BuildContext context, UserModel user) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          user.name,
+          style: textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          user.email,
+          style: textTheme.bodyMedium?.copyWith(
+            color: colorScheme.onSurfaceVariant,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Icon(Icons.public, size: 14, color: colorScheme.secondary),
+            const SizedBox(width: 4),
+            Text(
+              user.nationality,
+              style: textTheme.labelSmall?.copyWith(
+                color: colorScheme.secondary,
               ),
             ),
+          ],
+        ),
+      ],
     );
   }
 }

@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:random_user_app/features/user/data/models/user_model.dart';
@@ -70,27 +71,52 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
-            expandedHeight: 260,
+            expandedHeight: 280,
             pinned: true,
+            stretch: true,
+            iconTheme: const IconThemeData(color: Colors.white),
             actions: [
               IconButton(
-                icon: Icon(isSaved ? Icons.favorite : Icons.favorite_border),
+                icon: Icon(isSaved ? Icons.bookmark : Icons.bookmark_border),
+                color: Colors.white,
                 onPressed: isLoading ? null : _toggleSave,
+                tooltip: isSaved ? 'Remover dos salvos' : 'Salvar usuário',
               ),
             ],
             flexibleSpace: FlexibleSpaceBar(
+              centerTitle: true,
               title: Text(
                 widget.user.name,
-                style: const TextStyle(fontSize: 16),
-              ),
-              background: Container(
-                color: Theme.of(context).primaryColor,
-                child: Center(
-                  child: CircleAvatar(
-                    radius: 70,
-                    backgroundImage: NetworkImage(widget.user.picture),
-                  ),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
                 ),
+              ),
+              background: Stack(
+                fit: StackFit.expand,
+                children: [
+                  ImageFiltered(
+                    imageFilter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                    child: Image.network(
+                      widget.user.picture,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  Container(color: Colors.black.withValues(alpha: 0.4)),
+                  Center(
+                    child: Hero(
+                      tag: widget.user.picture,
+                      child: CircleAvatar(
+                        radius: 64,
+                        backgroundColor: Colors.white,
+                        child: CircleAvatar(
+                          radius: 60,
+                          backgroundImage: NetworkImage(widget.user.picture),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -191,21 +217,6 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
             ),
           ),
         ],
-      ),
-
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: isLoading ? null : _toggleSave,
-        icon: isLoading
-            ? const SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: Colors.white,
-                ),
-              )
-            : Icon(isSaved ? Icons.delete : Icons.bookmark),
-        label: Text(isSaved ? 'Remover' : 'Salvar'),
       ),
     );
   }
