@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:random_user_app/features/user/data/models/user_model.dart';
@@ -134,9 +135,10 @@ class _PersistedUsersScreenState extends State<PersistedUsersScreen> {
                                     tag: user.picture,
                                     child: CircleAvatar(
                                       radius: 36,
-                                      backgroundImage: NetworkImage(
-                                        user.picture,
-                                      ),
+                                      backgroundImage:
+                                          CachedNetworkImageProvider(
+                                            user.picture,
+                                          ),
                                     ),
                                   ),
                                   const SizedBox(width: 16),

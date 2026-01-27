@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:random_user_app/features/user/presentation/provider/user_provider.dart';
@@ -191,7 +192,9 @@ class _UserScreenState extends State<UserScreen>
                         tag: user.picture,
                         child: CircleAvatar(
                           radius: 36,
-                          backgroundImage: NetworkImage(user.picture),
+                          backgroundImage: CachedNetworkImageProvider(
+                            user.picture,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 16),

@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:random_user_app/features/user/data/models/user_model.dart';
@@ -97,8 +98,8 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                 children: [
                   ImageFiltered(
                     imageFilter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                    child: Image.network(
-                      widget.user.picture,
+                    child: CachedNetworkImage(
+                      imageUrl: widget.user.picture,
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -111,7 +112,9 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                         backgroundColor: Colors.white,
                         child: CircleAvatar(
                           radius: 60,
-                          backgroundImage: NetworkImage(widget.user.picture),
+                          backgroundImage: CachedNetworkImageProvider(
+                            widget.user.picture,
+                          ),
                         ),
                       ),
                     ),
